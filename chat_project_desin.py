@@ -14,14 +14,14 @@ my_name = ""
 users_data = ""
 is_username_ok = ""
 users_list = []
-PORT = 9999
+PORT = 32465
 public_k = 0
 private_k = 0
 server_public_key = 0
 
-host = input("ip address (127.0.0.1): ")
+host = input("ip address (193.161.193.99): ")
 if host == "":
-    host = "127.0.0.1"
+    host = "193.161.193.99"
 my_socket = socket.socket()
 my_socket.connect((host, PORT))
 

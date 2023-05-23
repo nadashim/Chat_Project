@@ -7,7 +7,7 @@ import re
 
 public_k = 0
 private_k = 0
-PORT = 9999
+PORT = 7727
 clients_sockets_list = []
 clients_threads = []
 users_name = []
