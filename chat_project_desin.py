@@ -6,21 +6,18 @@ from threading import *
 import RSA
 from RSA import *
 import random
-
-# from tkinter import filedialog
-# from RSA import *
-# import random
-# import os
+import re
 
 is_new_msg = False
 king_of_data = ""
 my_name = ""
 users_data = ""
+is_username_ok = ""
 users_list = []
 PORT = 9999
-is_username_ok = "not"
 public_k = 0
 private_k = 0
+server_public_key = 0
 
 host = input("ip address (127.0.0.1): ")
 if host == "":
@@ -44,7 +41,7 @@ window.tk.call("set_theme", "dark")
 def prime_num():
     global public_k
     global private_k
-    primes = [i for i in range(15, 1000) if is_prime(i)]
+    primes = [i for i in range(15, 1000) if RSA.is_prime(i)]
     n = random.choice(primes)
     n2 = random.choice(primes)
     if n2 == n:
@@ -52,32 +49,11 @@ def prime_num():
             n2 = random.choice(primes)
 
     public_k, private_k = RSA.keys(n, n2)
-    print(public_k, private_k)
 
 
 def disconnect():
-    my_socket.send("0".encode())
+    my_socket.send(f"0{my_name}".encode())
     w_lu.withdraw()
-
-
-ll1 = ttk.Label(window, text="Join the chat", font=("Arial", 15))
-
-l_un = ttk.Label(window, text="USER NAME -")
-
-e_un = ttk.Entry(window, width=30)
-
-user_select = ttk.Combobox(w_lu, values=users_list)
-user_select.get()
-
-# text
-all_users_list = Text(w_lu, width=112)
-
-
-# def receive():
-#     while True:
-#         data = my_socket.recv(1024).decode()
-#         print(data)
-#         all_users_list.insert(END, data + "\n")
 
 
 def refresh():
@@ -88,15 +64,27 @@ def refresh():
 
         if is_new_msg:
             break
-        time.sleep(0.25)
+        time.sleep(0.15)
     is_new_msg = False
 
-    print(f"users: {users_data}")
     users_list.clear()
     users_list = users_data.strip("\n").split("\n")
-    print(users_list)
     user_select.configure(values=users_list)
     user_select.current(0)
+
+
+ll1 = ttk.Label(window, text="Join the chat", font=("Arial", 15))
+
+l_un = ttk.Label(window, text="USER NAME -")
+
+e_un = ttk.Entry(window, width=30)
+user_select = ttk.Combobox(w_lu, values=users_list)
+
+user_select.get()
+# text
+
+
+all_users_list = Text(w_lu, width=112)
 
 
 def insert_msg(k_of_data):
@@ -107,48 +95,67 @@ def insert_msg(k_of_data):
 
 
 def get_msg():
-    """
-    for data type 3 (send to yourself):
-    ...
-    :return:
-    """
-    global king_of_data, is_username_ok, users_data, is_new_msg
+    global king_of_data, is_username_ok, users_data, is_new_msg, server_public_key
     while True:
         king_of_data = my_socket.recv(1024).decode()
-        print(f"king_of_data: {king_of_data}")
 
         if king_of_data[0] == "0":
-            is_username_ok = king_of_data[1:]
+            king_of_data = king_of_data[1:]
+
+            is_username_ok = " ".join(king_of_data.split()[0])
+            is_username_ok = re.sub(r'\s+', '', is_username_ok)
+
+            key_of_user = " ".join(king_of_data.split()[1:])
+            key_of_user = re.sub(r'\s+', '', key_of_user)
+            res = eval(key_of_user)
+            server_public_key = res
             is_new_msg = True
 
         elif king_of_data[0] == "1":
-            print(f"users list recv")
             users_data = king_of_data[1:]
             is_new_msg = True
 
         elif king_of_data[0] == "3":
             king_of_data = king_of_data[1:]
+            king_of_data = king_of_data.replace("[", "")
+            king_of_data = king_of_data.replace("]", "")
+
+            um_list = list(king_of_data.split(","))
+
+            try:
+                um_list = list(map(int, um_list))
+
+            except TypeError:
+                um_list = [25, 15]
+
+            king_of_data = decrypt(private_k, um_list)
             insert_msg(king_of_data)
 
         elif king_of_data[0] == "4":
             king_of_data = king_of_data[1:]
+            king_of_data = king_of_data.replace("[", "")
+            king_of_data = king_of_data.replace("]", "")
+
+            um_list = list(king_of_data.split(", "))
+            try:
+                um_list = list(map(int, um_list))
+
+            except TypeError:
+                um_list = [25, 15]
+
+            king_of_data = decrypt(private_k, um_list)
             insert_msg(king_of_data)
-            my_socket.send("5".encode())
-            print(king_of_data)
 
         else:
             print("something is wrong...")
 
 
 def send(name, msg):
-    final_msg = f"3{my_name} {name} {msg}"
+    msgs = f"{my_name} {name} {msg}"
+    f_msg = RSA.encrypt(server_public_key, msgs)
+    final_msg = f"3{f_msg}"
     ent_the_msg.delete(0, END)
     my_socket.send(final_msg.encode())
-    print(f"final_msg: {final_msg}")
-
-    # king_of_data = my_socket.recv(1024).decode()
-    # print(king_of_data)
-    # # insert_msg()
 
 
 def choose_user():
@@ -160,7 +167,6 @@ def choose_user():
     w_lu.resizable(False, False)
     w_lu.title(my_name)
     refresh()
-    # data = my_socket.recv(1024).decode()
 
     # entry
     ent_the_msg.bind("<Return>",
@@ -170,7 +176,7 @@ def choose_user():
     btn_ok = ttk.Button(w_lu, text="send",
                         command=lambda: [send(user_select.get(), ent_the_msg.get()), ent_the_msg.insert(END, "")])
     # temp solution to recv msgs:
-    btn_disconnect = Button(w_lu, text="disconnect", command=lambda: disconnect())
+    btn_disconnect = ttk.Button(w_lu, text="disconnect", command=lambda: disconnect())
 
     all_users_list.grid(padx=5, pady=5, row=0, column=0, columnspan=5, sticky="nsew")
     btn_refresh.grid(pady=5, padx=5, row=1, column=0, sticky="nsew")
@@ -180,12 +186,6 @@ def choose_user():
     btn_ok.grid(padx=5, pady=5, row=2, column=4, sticky="nsew")
     btn_disconnect.grid(padx=5, pady=5, row=3, column=3, columnspan=2, sticky="nsew")
 
-    #     king_of_data = my_socket.recv(1024).decode()
-    #     if king_of_data[0] == "3":
-    #         king_of_data = king_of_data[1:]
-    #         insert_msg()
-    # #
-
 
 def pending_approval():
     global my_name, is_username_ok, is_new_msg
@@ -193,7 +193,7 @@ def pending_approval():
     if my_name.count(" ") != 0:
         my_name = my_name.split()[0]
 
-    final_msg = "1" + my_name
+    final_msg = f"1{my_name} {public_k}"
     my_socket.send(final_msg.encode())
 
     while True:

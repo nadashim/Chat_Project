@@ -61,11 +61,7 @@ def keys(p, q):
         # while (is_prime(e)):
         e = random.randrange(1, phi)
         g = gcd(e, phi)
-    print(e)
     d = mod_inverse(e, phi)
-    print(len(str(e)))
-    print(len(str(n)))
-    print(len(str(d)))
 
     return (e, n), (d, n)
 
@@ -84,4 +80,5 @@ def encrypt(package, msg_plaintext):
 def decrypt(pk, e_msg):
     key, n = pk
     plain = [chr((char ** key) % n) for char in e_msg]
+    print(f"final -> {plain}")
     return ''.join(plain)
