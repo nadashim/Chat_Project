@@ -14,7 +14,8 @@ my_name = ""
 users_data = ""
 is_username_ok = ""
 users_list = []
-PORT = 32465
+#PORT = 32465
+PORT = 7727
 public_k = 0
 private_k = 0
 server_public_key = 0
@@ -83,8 +84,9 @@ user_select = ttk.Combobox(w_lu, values=users_list)
 user_select.get()
 # text
 
-
 all_users_list = Text(w_lu, width=112)
+
+# all_users_list = ttk.Notebook(w_lu, width=112)
 
 
 def insert_msg(k_of_data):
@@ -97,7 +99,7 @@ def insert_msg(k_of_data):
 def get_msg():
     global king_of_data, is_username_ok, users_data, is_new_msg, server_public_key
     while True:
-        king_of_data = my_socket.recv(1024).decode()
+        king_of_data = my_socket.recv(4096).decode()
 
         if king_of_data[0] == "0":
             king_of_data = king_of_data[1:]
