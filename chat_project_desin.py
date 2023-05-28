@@ -14,19 +14,21 @@ my_name = ""
 users_data = ""
 is_username_ok = ""
 users_list = []
-#PORT = 32465
+# PORT = 32465
 PORT = 7727
 public_k = 0
 private_k = 0
 server_public_key = 0
 
-host = input("ip address (193.161.193.99): ")
+# host = input("ip address (193.161.193.99): ")
+host = input("ip address (127.0.0.1): ")
 if host == "":
-    host = "193.161.193.99"
+    host = "127.0.0.1"
 my_socket = socket.socket()
 my_socket.connect((host, PORT))
 
 window = Tk()
+window.title("NBS.CHAT")
 w_lu = Toplevel()
 w_lu.withdraw()
 
@@ -74,7 +76,7 @@ def refresh():
     user_select.current(0)
 
 
-ll1 = ttk.Label(window, text="Join the chat", font=("Arial", 15))
+ll1 = ttk.Label(window, text="Join to NBS.CHAT", font=("Arial", 15))
 
 l_un = ttk.Label(window, text="USER NAME -")
 
@@ -84,15 +86,16 @@ user_select = ttk.Combobox(w_lu, values=users_list)
 user_select.get()
 # text
 
-all_users_list = Text(w_lu, width=112)
+chat_nbs = Text(w_lu, width=112)
 
-# all_users_list = ttk.Notebook(w_lu, width=112)
+
+# all_users_list = ttk.Notebook(w_lu, width=400, height=280)
 
 
 def insert_msg(k_of_data):
-    all_users_list.configure(state='normal')
-    all_users_list.insert(END, f"{k_of_data}\n")
-    all_users_list.configure(state='disabled')
+    chat_nbs.configure(state='normal')
+    chat_nbs.insert(END, f"{k_of_data}\n")
+    chat_nbs.configure(state='disabled')
     print("msg inserted!")
 
 
@@ -160,6 +163,12 @@ def send(name, msg):
     my_socket.send(final_msg.encode())
 
 
+def clear():
+    chat_nbs.configure(state='normal')
+    chat_nbs.delete("1.0", "end")
+    chat_nbs.configure(state='disabled')
+
+
 def choose_user():
     global users_list
     global king_of_data
@@ -174,15 +183,17 @@ def choose_user():
     ent_the_msg.bind("<Return>",
                      lambda event: [send(user_select.get(), ent_the_msg.get()), ent_the_msg.insert(END, "")])
     # buttons
+    btn_clear = ttk.Button(w_lu, text="clear the chat", command=lambda: clear())
     btn_refresh = ttk.Button(w_lu, text="refresh the users list", command=lambda: refresh())
     btn_ok = ttk.Button(w_lu, text="send",
                         command=lambda: [send(user_select.get(), ent_the_msg.get()), ent_the_msg.insert(END, "")])
     # temp solution to recv msgs:
     btn_disconnect = ttk.Button(w_lu, text="disconnect", command=lambda: disconnect())
 
-    all_users_list.grid(padx=5, pady=5, row=0, column=0, columnspan=5, sticky="nsew")
+    chat_nbs.grid(padx=5, pady=5, row=0, column=0, columnspan=5, sticky="nsew")
     btn_refresh.grid(pady=5, padx=5, row=1, column=0, sticky="nsew")
     user_select.grid(pady=5, padx=5, row=1, column=1, sticky="nsew")
+    btn_clear.grid(pady=5, padx=5, row=1, column=2, sticky="nsew")
 
     ent_the_msg.grid(padx=5, pady=5, row=2, column=0, columnspan=4, sticky="nsew")
     btn_ok.grid(padx=5, pady=5, row=2, column=4, sticky="nsew")

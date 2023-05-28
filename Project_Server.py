@@ -72,6 +72,7 @@ def handle_client_msg(client_socket):
             if check:
                 reply = f"0next {public_k}"
                 client_socket.send(reply.encode())
+
             else:
                 reply = "0false"
                 client_socket.send(reply.encode())
@@ -100,6 +101,7 @@ def handle_client_msg(client_socket):
             from_name = " ".join(user_msg.split()[0])
             from_someone = re.sub(r'\s+', '', from_name)
 
+            to_name = " ".join(user_msg.split()[1])
             to_name = " ".join(user_msg.split()[1])
             to_someone = re.sub(r'\s+', '', to_name)
             msg = " ".join(user_msg.split()[2:])

@@ -71,7 +71,6 @@ def keys(p, q):
 #     enc_msg = [(ord(char) ** key) % n for char in msg]
 #     return enc_msg
 def encrypt(package, msg_plaintext):
-    # unpack key value pair
     e, n = package
     msg_ciphertext = [pow(ord(c), e, n) for c in msg_plaintext]
     return msg_ciphertext
